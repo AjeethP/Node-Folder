@@ -3,6 +3,7 @@ import express from "express"
 import { MongoClient } from "mongodb";
 
 const app=express();
+const PORT=4000
 
 const users=[
     {
@@ -49,17 +50,19 @@ const users=[
     }
    ]
 
-   const MONGO_URL="mongodb://localhost"
+//    const MONGO_URL="mongodb://localhost"
+   const MONGO_URL="mongodb+srv://Ajeeth:@cluster0.cd4ca.mongodb.net"
+
+   //mongodb+srv://Ajeeth:<password>@cluster0.cd4ca.mongodb.net/myFirstDatabase?retryWrites=true&w=majority
 
    async function createConnection(){
        const client=new MongoClient(MONGO_URL);
        await client.connect();
-       const result=await client.db("flipkart").collection("brands").find({}).toArray()
-       console.log(result)
+       return client
 
    }
 
-   createConnection()
+//    createConnection()
 
 
    app.use(express.json())
@@ -68,13 +71,47 @@ app.get("/",(request,response)=>{
     response.send("Hello Ajeethkumar")
 });
 
+app.get("/brands",async(request,response)=>{
+    const client=await createConnection();
+       const result=await client.db("flipkart").collection("brands").find({}).toArray()
+    //    console.log(result)
+    response.send(result)
+});
+
 app.get("/users",(request,response)=>{
     response.send(users);
 })
 
+app.get("/user",async(request,response)=>{
+   // const userData=request.body
+    //console.log(request.body)
+    const client=await createConnection()
+    const result=await client.db("flipkart").collection("users").find({}).toArray()
+    response.send(result);
+})
+
+app.get("/user/:id",async(request,response)=>{
+    const {id}=request.params
+    // const userData=request.body
+     //console.log(request.body)
+     const client=await createConnection()
+     const result=await client.db("flipkart").collection("users").find({id:id}).toArray()
+     response.send(result);
+ })
+
 app.post("/user",(request,response)=>{
     console.log(request.body)
     response.send({msg:"hello"});
+})
+
+app.post("/users",async(request,response)=>{
+    const userData=request.body
+    //console.log(request.body)
+    const client=await createConnection()
+    const result=await client.db("flipkart").collection("users").insertMany(userData)
+ //    console.log(result)
+
+    response.send(result);
 })
 
 app.get("/users/:id",(request,response)=>{
@@ -90,7 +127,7 @@ app.get("/users/:id",(request,response)=>{
     }
 })
 
-app.listen(4000,()=>console.log("The server is started"))
+app.listen(PORT,()=>console.log("The server is started",PORT))
 
 
 
